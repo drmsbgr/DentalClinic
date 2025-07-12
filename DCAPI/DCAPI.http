@@ -1,0 +1,6 @@
+@DCAPI_HostAddress = http://localhost:5181
+
+GET {{DCAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
