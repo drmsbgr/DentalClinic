@@ -9,5 +9,5 @@ public interface IDentistService
     Dentist? GetDentistById(int id, bool trackChanges);
     void CreateDentist(DentistDtoForInsertion dentist);
     void UpdateDentist(DentistDtoForUpdate dentist);
-    void DeleteDentistById(int id);
+    bool DeleteDentistById(int id);
 }

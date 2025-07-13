@@ -9,5 +9,5 @@ public interface ICustomerService
     Customer? GetCustomerById(int id, bool trackChanges);
     void CreateCustomer(CustomerDtoForInsertion customer);
     void UpdateCustomer(CustomerDtoForUpdate customer);
-    void DeleteCustomerById(int id);
+    bool DeleteCustomerById(int id);
 }

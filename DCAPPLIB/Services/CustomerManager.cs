@@ -18,14 +18,16 @@ public class CustomerManager(IRepositoryManager manager, IMapper mapper) : ICust
         _manager.Save();
     }
 
-    public void DeleteCustomerById(int id)
+    public bool DeleteCustomerById(int id)
     {
         var Customer = GetCustomerById(id, false);
         if (Customer is not null)
         {
             _manager.Customer.DeleteCustomer(Customer);
             _manager.Save();
+            return true;
         }
+        return false;
     }
 
     public IQueryable<Customer> GetAllCustomers(bool trackChanges) => _manager.Customer.GetAllCustomers(trackChanges);

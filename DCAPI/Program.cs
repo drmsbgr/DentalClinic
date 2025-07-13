@@ -1,19 +1,30 @@
 using System.ComponentModel.DataAnnotations;
+using DCAPI;
 using DCAPI.Exceptions;
 using DCAPI.Models;
 using DCAPPLIB;
-using DCAPPLIB.Entities.Dtos.Clinical;
+using DCAPPLIB.Entities.Dtos;
+using DCAPPLIB.Entities.Dtos.Clinic;
+using DCAPPLIB.Entities.Dtos.Customer;
 using DCAPPLIB.Entities.Dtos.Dentist;
+using DCAPPLIB.Entities.Dtos.User;
 using DCAPPLIB.Repositories;
 using DCAPPLIB.Services.Contracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.ConfigureIdentity();
+builder.Services.ConfigureJwt(builder.Configuration);
+builder.Services.AddAuthorization();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -31,6 +42,27 @@ builder.Services.AddSwaggerGen(c =>
             Name = "Buğra DURMUŞ",
         }
     });
+    c.AddSecurityDefinition("Bearer", new()
+    {
+        In = ParameterLocation.Header,
+        Description = "Lütfen token girin.",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "bearer"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme{
+                Reference = new OpenApiReference{
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            []
+        }
+    });
 });
 
 builder.Services.AddSwaggerGen();
@@ -44,6 +76,9 @@ builder.Services.AddDbContext<RepositoryContext>(o =>
 });
 
 var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseExceptionHandler(appError =>
 {
@@ -94,16 +129,16 @@ app.MapGet("api/dentists", (IServiceManager manager, int currentPage = 1, int pa
     if (pageSize < 5) pageSize = 5;
 
     return manager.DentistService.GetAllDentists(false).Include(r => r.Clinical).Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
-}).WithTags("Dentist CRUD");
+}).WithTags("Dentist CRUD", "GETs");
 
 app.MapGet("api/dentists/{id:int}", (int id, IServiceManager manager) =>
 {
     var found = manager.DentistService.GetAllDentists(false).Include(r => r.Clinical).FirstOrDefault(x => x.Id == id)
     ?? throw new DentistNotFoundException();
     return found;
-}).WithTags("Dentist CRUD");
+}).WithTags("Dentist CRUD", "GETs");
 
-app.MapPost("api/dentists/", (DentistDtoForInsertion newDentist, IServiceManager manager) =>
+app.MapPost("api/dentists/", [Authorize(Roles = "Admin")] (DentistDtoForInsertion newDentist, IServiceManager manager) =>
 {
     var vResults = new List<ValidationResult>();
     var vContext = new ValidationContext(newDentist);
@@ -114,11 +149,24 @@ app.MapPost("api/dentists/", (DentistDtoForInsertion newDentist, IServiceManager
     manager.DentistService.CreateDentist(newDentist);
 
     return Results.Created($"/api/dentists/{newDentist.Id}", newDentist);
-}).WithTags("Dentist CRUD");
+}).WithTags("Dentist CRUD", "POSTs");
+
+app.MapDelete("api/dentists/{id:int}", [Authorize(Roles = "Admin")] (IServiceManager manager, int id) =>
+{
+    var result = manager.DentistService.DeleteDentistById(id);
+    if (result)
+        return Results.Ok();
+    else
+        throw new DentistNotFoundException();
+})
+.WithTags("Dentist CRUD")
+.RequireAuthorization()
+.Produces(StatusCodes.Status200OK)
+.Produces<ErrorDetails>(StatusCodes.Status404NotFound);
 
 #endregion
 
-#region Clinics
+#region CLINICS
 
 app.MapGet("api/clinics", (int currentPage, int pageSize, IServiceManager manager) =>
 {
@@ -126,9 +174,17 @@ app.MapGet("api/clinics", (int currentPage, int pageSize, IServiceManager manage
     if (pageSize < 5) pageSize = 5;
 
     return manager.ClinicalService.GetAllClinicals(false).Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
-}).WithTags("Clinics CRUD");
+})
+.WithTags("Clinics CRUD", "GETs");
 
-app.MapPost("api/clinics", (ClinicalDtoForInsertion newClinical, IServiceManager manager) =>
+app.MapGet("api/clinics/{id:int}", (int id, IServiceManager manager) =>
+{
+    var found = manager.ClinicalService.GetAllClinicals(false).Include(r => r.Dentists).Include(r => r.Customers).FirstOrDefault(x => x.Id == id)
+    ?? throw new ClinicNotFoundException();
+    return found;
+}).WithTags("Clinics CRUD", "GETs");
+
+app.MapPost("api/clinics", [Authorize(Roles = "Admin")] (ClinicDtoForInsertion newClinical, IServiceManager manager) =>
 {
     var vResults = new List<ValidationResult>();
     var vContext = new ValidationContext(newClinical);
@@ -138,17 +194,102 @@ app.MapPost("api/clinics", (ClinicalDtoForInsertion newClinical, IServiceManager
 
     manager.ClinicalService.CreateClinical(newClinical);
 
-    return Results.Created($"/api/dentists/{newClinical.Id}", newClinical);
-}).WithTags("Clinics CRUD");
+    return Results.Created($"/api/clinics/{newClinical.Id}", newClinical);
+})
+.WithTags("Clinics CRUD", "POSTs")
+.RequireAuthorization();
+
+app.MapDelete("api/clinics/{id:int}", [Authorize(Roles = "Admin")] (IServiceManager manager, int id) =>
+{
+    var result = manager.ClinicalService.DeleteClinicalById(id);
+    if (result)
+        return Results.Ok();
+    else
+        throw new ClinicNotFoundException();
+})
+.WithTags("Clinics CRUD")
+.RequireAuthorization()
+.Produces(StatusCodes.Status200OK)
+.Produces<ErrorDetails>(StatusCodes.Status404NotFound);
 
 #endregion
 
-app.MapGet("api/customers", (int currentPage, int pageSize, IServiceManager manager) =>
+#region CUSTOMERS
+
+app.MapGet("api/customers", (IServiceManager manager, int currentPage = 1, int pageSize = 5) =>
 {
     if (currentPage < 1) currentPage = 1;
     if (pageSize < 5) pageSize = 5;
 
     return manager.CustomerService.GetAllCustomers(false).Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
-}).WithTags("Customers CRUD");
+})
+.WithTags("Customers CRUD", "GETs");
+
+app.MapPost("api/customers", [Authorize(Roles = "Admin")] (CustomerDtoForInsertion newCustomer, IServiceManager manager) =>
+{
+    var vResults = new List<ValidationResult>();
+    var vContext = new ValidationContext(newCustomer);
+    var isValid = Validator.TryValidateObject(newCustomer, vContext, vResults, true);
+    if (!isValid)
+        return Results.UnprocessableEntity(vResults);
+
+    manager.CustomerService.CreateCustomer(newCustomer);
+
+    return Results.Created($"/api/customers/{newCustomer.Id}", newCustomer);
+})
+.WithTags("Customers CRUD", "POSTs")
+.RequireAuthorization();
+
+app.MapDelete("api/customers/{id:int}", [Authorize(Roles = "Admin")] (IServiceManager manager, int id) =>
+{
+    var result = manager.CustomerService.DeleteCustomerById(id);
+    if (result)
+        return Results.Ok();
+    else
+        throw new CustomerNotFoundException();
+})
+.WithTags("Customers CRUD")
+.RequireAuthorization()
+.Produces(StatusCodes.Status200OK)
+.Produces<ErrorDetails>(StatusCodes.Status404NotFound);
+
+#endregion
+
+app.MapPost("/api/auth", async (UserDtoForRegistration userDto, IAuthService authService) =>
+{
+    var result = await authService.RegisterUserAsync(userDto);
+
+    return result.Succeeded
+    ? Results.Ok(result)
+    : Results.BadRequest(result.Errors);
+})
+.Produces<IdentityResult>(StatusCodes.Status200OK)
+.Produces<ErrorDetails>(StatusCodes.Status400BadRequest)
+.WithTags("Auth");
+
+app.MapPost("/api/login", async (UserDtoForAuth userDto,
+    IAuthService authService) =>
+{
+    if (!await authService.ValidateUserAsync(userDto))
+        return Results.Unauthorized(); // 401
+    return Results.Ok(new
+    {
+        Token = await authService.CreateTokenAsync(true)
+    });
+})
+.Produces(StatusCodes.Status200OK)
+.Produces<ErrorDetails>(StatusCodes.Status401Unauthorized)
+.WithTags("Auth");
+
+app.MapPost("/api/refresh", async (TokenDto tokenDto,
+    IAuthService authService) =>
+{
+    var tokenDtoToReturn = await authService
+        .RefreshTokenAsync(tokenDto);
+
+    return Results.Ok(tokenDtoToReturn);
+})
+.Produces(StatusCodes.Status200OK)
+.WithTags("Auth");
 
 app.Run();

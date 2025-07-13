@@ -1,6 +1,6 @@
 using AutoMapper;
 using DCAPPLIB.Entities;
-using DCAPPLIB.Entities.Dtos.Clinical;
+using DCAPPLIB.Entities.Dtos.Clinic;
 using DCAPPLIB.Repositories.Contracts;
 using DCAPPLIB.Services.Contracts;
 
@@ -11,29 +11,32 @@ public class ClinicalManager(IRepositoryManager manager, IMapper mapper) : IClin
     private readonly IRepositoryManager _manager = manager;
     private readonly IMapper _mapper = mapper;
 
-    public void CreateClinical(ClinicalDtoForInsertion clinicalDto)
+    public void CreateClinical(ClinicDtoForInsertion clinicalDto)
     {
         Clinical clinical = _mapper.Map<Clinical>(clinicalDto);
         _manager.Clinical.CreateClinical(clinical);
         _manager.Save();
     }
 
-    public void DeleteClinicalById(int id)
+    public bool DeleteClinicalById(int id)
     {
         var clinical = GetClinicalById(id, false);
         if (clinical is not null)
         {
             _manager.Clinical.DeleteClinical(clinical);
             _manager.Save();
+            return true;
         }
+
+        return false;
     }
 
     public IQueryable<Clinical> GetAllClinicals(bool trackChanges) => _manager.Clinical.GetAllClinicals(trackChanges);
 
-    public ClinicalDtoForUpdate GetClinicalByIdForUpdate(int id, bool trackChanges)
+    public ClinicDtoForUpdate GetClinicalByIdForUpdate(int id, bool trackChanges)
     {
         var clinical = GetClinicalById(id, trackChanges);
-        var clinicalDto = _mapper.Map<ClinicalDtoForUpdate>(clinical);
+        var clinicalDto = _mapper.Map<ClinicDtoForUpdate>(clinical);
         return clinicalDto;
     }
 
@@ -43,7 +46,7 @@ public class ClinicalManager(IRepositoryManager manager, IMapper mapper) : IClin
         return clinical;
     }
 
-    public void UpdateClinical(ClinicalDtoForUpdate clinicalDto)
+    public void UpdateClinical(ClinicDtoForUpdate clinicalDto)
     {
         var clinical = _mapper.Map<Clinical>(clinicalDto);
         _manager.Clinical.UpdateClinical(clinical);

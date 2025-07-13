@@ -18,14 +18,17 @@ public class DentistManager(IRepositoryManager manager, IMapper mapper) : IDenti
         _manager.Save();
     }
 
-    public void DeleteDentistById(int id)
+    public bool DeleteDentistById(int id)
     {
         var dentist = GetDentistById(id, false);
         if (dentist is not null)
         {
             _manager.Dentist.DeleteDentist(dentist);
             _manager.Save();
+            return true;
         }
+
+        return false;
     }
 
     public IQueryable<Dentist> GetAllDentists(bool trackChanges) => _manager.Dentist.GetAllDentists(trackChanges);

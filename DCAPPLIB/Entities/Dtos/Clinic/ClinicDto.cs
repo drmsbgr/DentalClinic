@@ -1,6 +1,6 @@
-namespace DCAPPLIB.Entities.Dtos.Clinical;
+namespace DCAPPLIB.Entities.Dtos.Clinic;
 
-public record ClinicalDto
+public record ClinicDto
 {
     public int Id { get; set; }
     public string? Name { get; set; }
