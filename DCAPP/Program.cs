@@ -1,7 +1,16 @@
+using DCAPPLIB.Repositories;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddDbContext<RepositoryContext>(options =>
+{
+    options.UseSqlite(builder.Configuration.GetConnectionString("sqliteConn"),
+    b => b.MigrationsAssembly("DCAPP"));
+});
 
 var app = builder.Build();
 
