@@ -7,5 +7,5 @@ public class Dentist
     public string? LastName { get; set; }
 
     public int ClinicalId { get; set; }
-    public Clinical? Clinical { get; } = null;
+    public Clinical? Clinical { get; set; }
 }

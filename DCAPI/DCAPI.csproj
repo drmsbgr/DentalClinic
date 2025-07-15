@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DCAPPLIB\DCAPPLIB.csproj" />
+    <ProjectReference Include="..\DCAPPREPO\DCAPPREPO.csproj" />
   </ItemGroup>
 
 </Project>

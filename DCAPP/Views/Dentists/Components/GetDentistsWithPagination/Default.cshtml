@@ -1,0 +1,15 @@
+@model PaginationDataModel<Dentist>
+
+<h3 class="mb-3">Hekimler</h3>
+<div class="list-group mb-3">
+    @foreach (var dentist in Model.PaginatedList!.OrderBy(x => x.FullName()))
+    {
+        <a asp-controller="Dentists" asp-action="Details" asp-route-id="@dentist.Id"
+            class="list-group-item d-flex justify-content-between align-items-center"
+            style="font-size: 20px; height:75px">@dentist.FullName()
+            <span class="badge text-bg-primary rounded-pill"></span>
+        </a>
+    }
+</div>
+
+@await Component.InvokeAsync("Pagination", Model.PaginationModel)

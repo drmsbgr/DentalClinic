@@ -7,11 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.7" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.7" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\DCAPPLIB\DCAPPLIB.csproj" />
   </ItemGroup>
 

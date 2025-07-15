@@ -1,0 +1,7 @@
+@{
+    ViewData["Title"] = "Hekimlerimiz";
+}
+
+@model PaginatedViewModel
+
+@await Component.InvokeAsync("GetDentistsWithPagination", Model)

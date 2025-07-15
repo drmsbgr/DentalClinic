@@ -8,8 +8,8 @@ using DCAPPLIB.Entities.Dtos.Clinic;
 using DCAPPLIB.Entities.Dtos.Customer;
 using DCAPPLIB.Entities.Dtos.Dentist;
 using DCAPPLIB.Entities.Dtos.User;
-using DCAPPLIB.Repositories;
-using DCAPPLIB.Services.Contracts;
+using DCAPPREPO.Repositories;
+using DCAPPREPO.Services.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
@@ -121,19 +121,39 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-#region DENISTS
+app.MapGet("/api/getDentistsByClinic/{id:int}", (int id, IServiceManager serviceManager) =>
+{
+    return serviceManager.DentistService.GetAllDentists(false).Where(x => x.Clinic!.Id == id);
+});
+
+app.MapGet("/api/getClinicById/{id:int}", (int id, IServiceManager serviceManager) =>
+{
+    return serviceManager.ClinicalService.GetAllClinicals(false).FirstOrDefault(x => x.Id == id);
+});
+
+#region DENTISTS
 
 app.MapGet("api/dentists", (IServiceManager manager, int currentPage = 1, int pageSize = 5) =>
 {
     if (currentPage < 1) currentPage = 1;
-    if (pageSize < 5) pageSize = 5;
+    if (pageSize <= 0) pageSize = 5;
 
-    return manager.DentistService.GetAllDentists(false).Include(r => r.Clinical).Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+    return manager.DentistService.GetAllDentists(false).OrderBy(x => x.FirstName + " " + x.LastName!.ToUpper()).Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+}).WithTags("Dentist CRUD", "GETs");
+
+app.MapGet("api/allDentists", (IServiceManager manager) =>
+{
+    return manager.DentistService.GetAllDentists(false).OrderBy(x => x.FirstName + " " + x.LastName!.ToUpper()).ToList();
+}).WithTags("Dentist CRUD", "GETs");
+
+app.MapGet("api/dentistsCount", (IServiceManager manager) =>
+{
+    return manager.DentistService.GetAllDentists(false).Count();
 }).WithTags("Dentist CRUD", "GETs");
 
 app.MapGet("api/dentists/{id:int}", (int id, IServiceManager manager) =>
 {
-    var found = manager.DentistService.GetAllDentists(false).Include(r => r.Clinical).FirstOrDefault(x => x.Id == id)
+    var found = manager.DentistService.GetAllDentists(false).FirstOrDefault(x => x.Id == id)
     ?? throw new DentistNotFoundException();
     return found;
 }).WithTags("Dentist CRUD", "GETs");
@@ -159,7 +179,7 @@ app.MapDelete("api/dentists/{id:int}", [Authorize(Roles = "Admin")] (IServiceMan
     else
         throw new DentistNotFoundException();
 })
-.WithTags("Dentist CRUD")
+.WithTags("Dentist CRUD", "DELETEs")
 .RequireAuthorization()
 .Produces(StatusCodes.Status200OK)
 .Produces<ErrorDetails>(StatusCodes.Status404NotFound);
@@ -171,9 +191,15 @@ app.MapDelete("api/dentists/{id:int}", [Authorize(Roles = "Admin")] (IServiceMan
 app.MapGet("api/clinics", (int currentPage, int pageSize, IServiceManager manager) =>
 {
     if (currentPage < 1) currentPage = 1;
-    if (pageSize < 5) pageSize = 5;
+    if (pageSize <= 0) pageSize = 5;
 
-    return manager.ClinicalService.GetAllClinicals(false).Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+    return manager.ClinicalService.GetAllClinicals(false).Include(r => r.Dentists).OrderByDescending(x => x.Dentists.Count).Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+})
+.WithTags("Clinics CRUD", "GETs");
+
+app.MapGet("api/clinicsCount", (IServiceManager manager) =>
+{
+    return manager.ClinicalService.GetAllClinicals(false).Count();
 })
 .WithTags("Clinics CRUD", "GETs");
 
@@ -207,7 +233,7 @@ app.MapDelete("api/clinics/{id:int}", [Authorize(Roles = "Admin")] (IServiceMana
     else
         throw new ClinicNotFoundException();
 })
-.WithTags("Clinics CRUD")
+.WithTags("Clinics CRUD", "DELETEs")
 .RequireAuthorization()
 .Produces(StatusCodes.Status200OK)
 .Produces<ErrorDetails>(StatusCodes.Status404NotFound);
@@ -219,9 +245,15 @@ app.MapDelete("api/clinics/{id:int}", [Authorize(Roles = "Admin")] (IServiceMana
 app.MapGet("api/customers", (IServiceManager manager, int currentPage = 1, int pageSize = 5) =>
 {
     if (currentPage < 1) currentPage = 1;
-    if (pageSize < 5) pageSize = 5;
+    if (pageSize <= 0) pageSize = 5;
 
     return manager.CustomerService.GetAllCustomers(false).Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+})
+.WithTags("Customers CRUD", "GETs");
+
+app.MapGet("api/customersCount", (IServiceManager manager) =>
+{
+    return manager.CustomerService.GetAllCustomers(false).Count();
 })
 .WithTags("Customers CRUD", "GETs");
 
@@ -248,12 +280,14 @@ app.MapDelete("api/customers/{id:int}", [Authorize(Roles = "Admin")] (IServiceMa
     else
         throw new CustomerNotFoundException();
 })
-.WithTags("Customers CRUD")
+.WithTags("Customers CRUD", "DELETEs")
 .RequireAuthorization()
 .Produces(StatusCodes.Status200OK)
 .Produces<ErrorDetails>(StatusCodes.Status404NotFound);
 
 #endregion
+
+#region AUTH
 
 app.MapPost("/api/auth", async (UserDtoForRegistration userDto, IAuthService authService) =>
 {
@@ -291,5 +325,7 @@ app.MapPost("/api/refresh", async (TokenDto tokenDto,
 })
 .Produces(StatusCodes.Status200OK)
 .WithTags("Auth");
+
+#endregion
 
 app.Run();

@@ -14,8 +14,12 @@ public class MappingProfile : Profile
         CreateMap<DentistDtoForInsertion, Dentist>();
         CreateMap<DentistDtoForUpdate, Dentist>().ReverseMap();
 
+        CreateMap<Clinical, ClinicDto>();
         CreateMap<ClinicDtoForInsertion, Clinical>();
         CreateMap<ClinicDtoForUpdate, Clinical>().ReverseMap();
+
+        CreateMap<Clinical, ClinicExtendedDto>().ForMember(dest => dest.Dentists, opt => opt.MapFrom(src => src.Dentists));
+        CreateMap<Dentist, DentistWithClinicDto>().ForMember(dest => dest.Clinic, opt => opt.MapFrom(src => src.Clinical));
 
         CreateMap<CustomerDtoForInsertion, Customer>();
         CreateMap<CustomerDtoForUpdate, Customer>().ReverseMap();

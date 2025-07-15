@@ -1,0 +1,19 @@
+@using DCAPPLIB.Entities.Dtos.Dentist
+@{
+    ViewData["Title"] = "Hekim";
+}
+
+@model DentistWithClinicDto
+
+
+<div class="card" style="width: 500px;">
+    <div class="card-body">
+        <h5 class="card-title" style="font-size: 32px;">@(Model.FirstName + " " + Model.LastName?.ToUpper())</h5>
+        <br>
+        <h6 class="card-subtitle mb-2 text-body-secondary">Klinik: <b>@Model.Clinic?.Name</b></h6>
+        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card’s
+            content.</p>
+        <a asp-controller="Clinics" asp-action="Details" asp-route-id="@Model.Clinic?.Id" class="card-link">Kliniğe
+            Git</a>
+    </div>
+</div>

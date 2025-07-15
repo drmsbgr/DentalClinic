@@ -1,0 +1,15 @@
+@model PaginationDataModel<Clinical>
+
+<h3 class="mb-3">Klinikler</h3>
+<div class="list-group mb-3">
+    @foreach (var clinic in Model.PaginatedList!)
+    {
+        <a asp-controller="Clinics" asp-action="Details" asp-route-id="@clinic.Id" style="font-size: 20px; height:75px"
+            class="list-group-item d-flex justify-content-between align-items-center" style="font-size: 20px;">@clinic.Name
+            <span class="badge text-bg-primary rounded-pill">
+                @await Component.InvokeAsync("GetDentistCountByClinicId", clinic.Id) hekim</span>
+        </a>
+    }
+</div>
+
+@await Component.InvokeAsync("Pagination", Model.PaginationModel)
