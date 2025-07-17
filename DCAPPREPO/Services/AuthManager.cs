@@ -62,7 +62,7 @@ public class AuthManager(IMapper mapper, UserManager<User> userManager, IConfigu
         return await CreateTokenAsync(false);
     }
 
-    private string GenerateRefreshToken()
+    private static string GenerateRefreshToken()
     {
         var randomNumber = new byte[32];
         using var rng = RandomNumberGenerator.Create();

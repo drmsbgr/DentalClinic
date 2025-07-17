@@ -39,10 +39,41 @@
                             <a class="nav-link text-light" asp-area="" asp-controller="Home"
                                 asp-action="AboutUs">Hakkımızda</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home"
-                                asp-action="Privacy">Gizlilik</a>
-                        </li>
+                        @if (User.Identity is not null && User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <div class="btn-group dropstart">
+                                    <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                        <strong>@User.Identity.Name</strong>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        @if (User.HasClaim(System.Security.Claims.ClaimTypes.Role, "Admin"))
+                                        {
+                                            <li><a class="dropdown-item" asp-area="Admin" asp-controller="Dashboard"
+                                                    asp-action="Index">Yönetici
+                                                    Paneli</a></li>
+                                        }
+                                        <li><a class="dropdown-item" asp-controller="Account" asp-action="Index">Profil</a>
+                                        </li>
+                                        <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout">Çıkış
+                                                Yap</a></li>
+                                    </ul>
+                                </div>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-area="" asp-controller="Account"
+                                    asp-action="Register">Kayıt
+                                    Ol</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-area="" asp-controller="Account" asp-action="Login">Giriş
+                                    Yap</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>

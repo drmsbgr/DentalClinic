@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using DCAPI;
 using DCAPI.Exceptions;
 using DCAPI.Models;
-using DCAPPLIB;
 using DCAPPLIB.Entities.Dtos;
 using DCAPPLIB.Entities.Dtos.Clinic;
 using DCAPPLIB.Entities.Dtos.Customer;
@@ -306,10 +305,7 @@ app.MapPost("/api/login", async (UserDtoForAuth userDto,
 {
     if (!await authService.ValidateUserAsync(userDto))
         return Results.Unauthorized(); // 401
-    return Results.Ok(new
-    {
-        Token = await authService.CreateTokenAsync(true)
-    });
+    return Results.Ok(await authService.CreateTokenAsync(true));
 })
 .Produces(StatusCodes.Status200OK)
 .Produces<ErrorDetails>(StatusCodes.Status401Unauthorized)

@@ -1,0 +1,29 @@
+﻿@{
+    ViewData["Title"] = "Giriş Yap";
+}
+
+@model LoginViewModel
+
+<div>
+    <h1 class="display-4">Giriş yap</h1>
+    <div>
+        <div class="text-danger" asp-validation-summary="All"></div>
+    </div>
+    <form asp-action="Login" method="post">
+        <div class="form-floating mb-3">
+            <input type="text" required asp-for="Username" class="form-control" id="usernameInput"
+                placeholder="test123">
+            <label for="usernameInput" class="form-label">Kullanıcı Adı</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input type="password" asp-for="Password" required class="form-control" id="passwordInput"
+                placeholder="******">
+            <label for="passwordInput" class="form-label">Şifre</label>
+        </div>
+        <div class="mb-3">
+            <input class="form-check-input" type="checkbox" value="" id="rememberMeInput">
+            <label class="form-check-label" asp-for="RememberMe" for="rememberMeInput">Beni Hatırla</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Giriş yap</button>
+    </form>
+</div>

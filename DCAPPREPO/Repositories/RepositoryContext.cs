@@ -30,7 +30,8 @@ public class RepositoryContext(DbContextOptions<RepositoryContext> options) : Id
                 Id = "57aa6858-cb26-4153-9450-f3fd4b6eb8bf",
                 Name = "Customer",
                 NormalizedName = "CUSTOMER"
-            }
+            },
+            new IdentityRole("Dentist")
         );
     }
 }
